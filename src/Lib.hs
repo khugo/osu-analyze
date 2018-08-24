@@ -1,12 +1,21 @@
 module Lib
-    ( someFunct'
-    , test
+    ( 
+        getBeatmapEntries
     )
 where
 
-someFunct' :: IO ()
-someFunct' = putStrLn "someFunccc"
+import qualified Data.List as L
+import qualified Data.Text as T
+import qualified Data.Map.Lazy as M
+import Codec.Archive.Zip (withArchive, getEntries, getEntryName, EntrySelector)
 
-test :: Int -> Int
-test = \case
-    1 -> 8
+getBeatmapEntries :: String -> IO [EntrySelector]
+getBeatmapEntries zipPath = do
+    entries <- withArchive zipPath (M.keys <$> getEntries)
+    return $ filter isBeatmapEntry entries
+
+isBeatmapEntry :: EntrySelector -> Bool
+isBeatmapEntry entry = L.isSuffixOf ".osu" entryName
+    where entryName = T.unpack $ getEntryName entry
+
+
