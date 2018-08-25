@@ -24,6 +24,8 @@ dependencies:
 - zip
 - containers
 - text
+- bytestring
+- split
 
 default-extensions:
   - EmptyCase
