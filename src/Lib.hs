@@ -2,6 +2,8 @@ module Lib
     ( 
           extractSectionLines
         , extractSection
+        , parseBeatmapMetadata
+        , BeatmapMetadata (..)
     )
 where
 
@@ -18,7 +20,7 @@ data BeatmapMetadata = MkBeatmapMetadata { beatmapId :: Int
                                          , creator :: String
                                          , version :: String
                                          , source :: String
-                                         } deriving (Show)
+                                         } deriving (Show, Eq)
 
 getBeatmapStrings :: String -> IO [String]
 getBeatmapStrings zipPath = do
@@ -31,15 +33,21 @@ isBeatmapEntry :: EntrySelector -> Bool
 isBeatmapEntry entry = ".osu" `T.isSuffixOf` entryName
     where entryName = getEntryName entry
 
-parseBeatmapMetadata :: [String] -> Int
-parseBeatmapMetadata beatmapLines = 1
+parseBeatmapMetadata :: [String] -> BeatmapMetadata
+parseBeatmapMetadata allLines = MkBeatmapMetadata {beatmapId=read $ metadata M.! "BeatmapID"
+                                                  ,beatmapSetId=read $ metadata M.! "BeatmapSetID"
+                                                  ,title=metadata M.! "TitleUnicode"
+                                                  ,artist=metadata M.! "ArtistUnicode"
+                                                  ,creator=metadata M.! "Creator"
+                                                  ,version=metadata M.! "Version"
+                                                  ,source=metadata M.! "Source"} 
     where
-        metadata = extractSection "Metadata" beatmapLines
+        metadata = extractSection "Metadata" allLines
 
 extractSection :: String -> [String] -> M.Map String String
 extractSection sectionName allLines = makeMap $ extractSectionLines sectionName allLines
     where makeMap = M.fromList . pairs
-          pairs = map toPair . map splitLine 
+          pairs = map (toPair . splitLine)
           toPair [k,v] = (k,v)
           splitLine = map (T.unpack . T.strip . T.pack) . splitOn ":"
  
