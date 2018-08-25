@@ -1,6 +1,7 @@
 module Lib
     ( 
-        extractSection
+          extractSectionLines
+        , extractSection
     )
 where
 
@@ -30,18 +31,20 @@ isBeatmapEntry :: EntrySelector -> Bool
 isBeatmapEntry entry = ".osu" `T.isSuffixOf` entryName
     where entryName = getEntryName entry
 
-parseBeatmap :: String -> Int
-parseBeatmap definition = 1
-    where
-        beatmapLines = splitOn "\r\n" definition
-
 parseBeatmapMetadata :: [String] -> Int
 parseBeatmapMetadata beatmapLines = 1
     where
-        lines = extractSection "Metadata" beatmapLines
-        
-extractSection :: String -> [String] -> [String]
-extractSection sectionName = stripHeader . sectionLines
+        metadata = extractSection "Metadata" beatmapLines
+
+extractSection :: String -> [String] -> M.Map String String
+extractSection sectionName allLines = makeMap $ extractSectionLines sectionName allLines
+    where makeMap = M.fromList . pairs
+          pairs = map toPair . map splitLine 
+          toPair [k,v] = (k,v)
+          splitLine = map (T.unpack . T.strip . T.pack) . splitOn ":"
+ 
+extractSectionLines :: String -> [String] -> [String]
+extractSectionLines sectionName = stripHeader . sectionLines
     where stripHeader [] = []
           stripHeader xs = tail xs
           sectionLines = takeWhile (/= "") . dropWhile (/= "[" ++ sectionName ++ "]")
