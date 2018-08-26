@@ -12,7 +12,7 @@ import qualified Data.ByteString.Char8 as BS
 import qualified Data.Map.Lazy as M
 import Data.List.Split (splitOn)
 import Codec.Archive.Zip (withArchive, getEntries, getEntryName, getEntry, EntrySelector)
-import Data.Maybe (catMaybes)
+import Data.Maybe (mapMaybe)
 
 data BeatmapMetadata = MkBeatmapMetadata { beatmapId :: Int
                                          , beatmapSetId :: Int
@@ -26,7 +26,7 @@ data BeatmapMetadata = MkBeatmapMetadata { beatmapId :: Int
 getBeatmapStrings :: String -> IO [String]
 getBeatmapStrings zipPath = map BS.unpack <$> withArchive zipPath archiveM 
     where archiveM = beatmapEntries >>= mapM getEntry
-          beatmapEntries = filter isBeatmapEntry <$> M.keys <$> getEntries
+          beatmapEntries = filter isBeatmapEntry . M.keys <$> getEntries
 
 isBeatmapEntry :: EntrySelector -> Bool
 isBeatmapEntry entry = ".osu" `T.isSuffixOf` entryName
@@ -46,7 +46,7 @@ parseBeatmapMetadata allLines = MkBeatmapMetadata { beatmapId = read $ metadata
 extractSection :: String -> [String] -> M.Map String String
 extractSection sectionName allLines = makeMap $ extractSectionLines sectionName allLines
     where makeMap = M.fromList . pairs
-          pairs = catMaybes . map (toPair . splitLine)
+          pairs = mapMaybe (toPair . splitLine)
           toPair [k,v] = Just (k,v)
           toPair _ = Nothing
           splitLine = map (T.unpack . T.strip . T.pack) . splitOn ":"
