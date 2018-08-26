@@ -23,24 +23,22 @@ data BeatmapMetadata = MkBeatmapMetadata { beatmapId :: Int
                                          } deriving (Show, Eq)
 
 getBeatmapStrings :: String -> IO [String]
-getBeatmapStrings zipPath = do
-    entries <- withArchive zipPath (M.keys <$> getEntries)
-    let beatmapEntries = filter isBeatmapEntry entries
-    byteStrings <- withArchive zipPath (mapM getEntry beatmapEntries)
-    return $ map BS.unpack byteStrings 
+getBeatmapStrings zipPath = map BS.unpack <$> withArchive zipPath archiveM 
+    where archiveM = beatmapEntries >>= mapM getEntry
+          beatmapEntries = filter isBeatmapEntry <$> M.keys <$> getEntries
 
 isBeatmapEntry :: EntrySelector -> Bool
 isBeatmapEntry entry = ".osu" `T.isSuffixOf` entryName
     where entryName = getEntryName entry
 
 parseBeatmapMetadata :: [String] -> BeatmapMetadata
-parseBeatmapMetadata allLines = MkBeatmapMetadata {beatmapId=read $ metadata M.! "BeatmapID"
-                                                  ,beatmapSetId=read $ metadata M.! "BeatmapSetID"
-                                                  ,title=metadata M.! "TitleUnicode"
-                                                  ,artist=metadata M.! "ArtistUnicode"
-                                                  ,creator=metadata M.! "Creator"
-                                                  ,version=metadata M.! "Version"
-                                                  ,source=metadata M.! "Source"} 
+parseBeatmapMetadata allLines = MkBeatmapMetadata { beatmapId = read $ metadata M.! "BeatmapID"
+                                                  , beatmapSetId = read $ metadata M.! "BeatmapSetID"
+                                                  , title = metadata M.! "TitleUnicode"
+                                                  , artist = metadata M.! "ArtistUnicode"
+                                                  , creator = metadata M.! "Creator"
+                                                  , version = metadata M.! "Version"
+                                                  , source = metadata M.! "Source" }
     where
         metadata = extractSection "Metadata" allLines
 
