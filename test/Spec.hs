@@ -9,6 +9,7 @@ main = hspec $ do
                        , "[General]"
                        , "a: 1"
                        , "b: 2"
+                       , "invalid"
                        , ""
                        , "[Editor]"
                        , "c: 1"
@@ -19,7 +20,7 @@ main = hspec $ do
     describe "extractSectionLines" $ do
         it "extracts relevant lines" $ do
             let result = extractSectionLines "General" beatmapLines 
-            result `shouldBe` ["a: 1", "b: 2"]
+            result `shouldBe` ["a: 1", "b: 2", "invalid"]
 
         describe "when section does not exist" $ do
             it "returns empty list" $ do

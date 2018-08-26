@@ -12,6 +12,7 @@ import qualified Data.ByteString.Char8 as BS
 import qualified Data.Map.Lazy as M
 import Data.List.Split (splitOn)
 import Codec.Archive.Zip (withArchive, getEntries, getEntryName, getEntry, EntrySelector)
+import Data.Maybe (catMaybes)
 
 data BeatmapMetadata = MkBeatmapMetadata { beatmapId :: Int
                                          , beatmapSetId :: Int
@@ -45,8 +46,9 @@ parseBeatmapMetadata allLines = MkBeatmapMetadata { beatmapId = read $ metadata
 extractSection :: String -> [String] -> M.Map String String
 extractSection sectionName allLines = makeMap $ extractSectionLines sectionName allLines
     where makeMap = M.fromList . pairs
-          pairs = map (toPair . splitLine)
-          toPair [k,v] = (k,v)
+          pairs = catMaybes . map (toPair . splitLine)
+          toPair [k,v] = Just (k,v)
+          toPair _ = Nothing
           splitLine = map (T.unpack . T.strip . T.pack) . splitOn ":"
  
 extractSectionLines :: String -> [String] -> [String]
