@@ -1,9 +1,9 @@
 import Test.Hspec
-import qualified Osu.ParserSpec
+import qualified Osu.Beatmap.ParserSpec
 
 main :: IO ()
 main = hspec spec
 
 spec :: Spec
 spec = do
-    describe "Parser" Osu.ParserSpec.spec
+    describe "Parser" Osu.Beatmap.ParserSpec.spec

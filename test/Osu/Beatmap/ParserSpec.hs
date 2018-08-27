@@ -1,12 +1,12 @@
-module Osu.ParserSpec
+module Osu.Beatmap.ParserSpec
     (
       spec
     )
 where
 
 import Test.Hspec
-import Osu.Parser
 import Osu.Beatmap
+import Osu.Beatmap.Parser
 import qualified Data.Map.Lazy as M
 
 spec :: Spec

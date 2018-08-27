@@ -1,4 +1,4 @@
-module Osu.Parser
+module Osu.Beatmap.Parser
     (
       parseBeatmapMetadata 
     , extractSection
