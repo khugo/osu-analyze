@@ -7,36 +7,45 @@ module Osu.Beatmap.Parser
 where
 
 import qualified Data.Map.Lazy as M
-import qualified Data.Text as T
-import Data.List.Split (splitOn)
+import Data.Text (Text, strip, unpack, pack, splitOn)
+import Text.Read (readMaybe)
 import Data.Maybe (mapMaybe)
 import Osu.Beatmap
 
-parseBeatmapMetadata :: [String] -> Metadata
-parseBeatmapMetadata allLines = Metadata { beatmapId = read $ metadata M.! "BeatmapID"
-                                                  , beatmapSetId = read $ metadata M.! "BeatmapSetID"
-                                                  , title = metadata M.! "TitleUnicode"
-                                                  , artist = metadata M.! "ArtistUnicode"
-                                                  , creator = metadata M.! "Creator"
-                                                  , version = metadata M.! "Version"
-                                                  , source = metadata M.! "Source" }
-    where
-        metadata = extractSection "Metadata" allLines
+parseBeatmapMetadata :: [Text] -> Maybe Metadata
+parseBeatmapMetadata allLines = do
+    let metadata = extractSection "Metadata" allLines
+    beatmapId <- readMaybe . unpack =<< metadata M.!? "BeatmapID" 
+    beatmapSetId <- readMaybe . unpack =<< metadata M.!? "BeatmapSetID"
+    title <- metadata M.!? "TitleUnicode"
+    artist <- metadata M.!? "ArtistUnicode"
+    creator <- metadata M.!? "Creator"
+    version <- metadata M.!? "Version"
+    source <- metadata M.!? "Source"
+    return Metadata { beatmapId = beatmapId
+                    , beatmapSetId = beatmapSetId
+                    , title = title
+                    , artist = artist
+                    , creator = creator
+                    , version = version
+                    , source = source
+                    }
 
-extractSection :: String -> [String] -> M.Map String String
+extractSection :: Text -> [Text] -> M.Map Text Text
 extractSection sectionName allLines = makeMap $ extractSectionLines sectionName allLines
     where makeMap = M.fromList . pairs
           pairs = mapMaybe (toTuple . splitLine)
           toTuple [k,v] = Just (k,v)
           toTuple _ = Nothing
-          splitLine = map (T.unpack . T.strip . T.pack) . splitOn ":"
+          splitLine = map strip . splitOn ":"
  
-extractSectionLines :: String -> [String] -> [String]
-extractSectionLines sectionName = stripHeader . sectionLines
+extractSectionLines :: Text -> [Text] -> [Text]
+extractSectionLines sectionName = map pack . stripHeader . sectionLines . map unpack
     where stripHeader [] = []
           stripHeader xs = tail xs
-          sectionLines = takeWhile (/= "") . dropWhile (/= "[" ++ sectionName ++ "]")
+          sectionLines = takeWhile (/= "") . dropWhile (/= sectionHeader)
+          sectionHeader = "[" ++ (unpack sectionName) ++ "]"
 
-beatmapLines :: String -> [String]
+beatmapLines :: Text -> [Text]
 beatmapLines = splitOn "\r\n"
 

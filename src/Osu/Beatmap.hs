@@ -5,13 +5,15 @@ module Osu.Beatmap
 
 where
 
+import Data.Text (Text)
+
 data Metadata = Metadata { beatmapId :: Int
                          , beatmapSetId :: Int
-                         , title :: String
-                         , artist :: String
-                         , creator :: String
-                         , version :: String
-                         , source :: String
+                         , title :: Text
+                         , artist :: Text
+                         , creator :: Text
+                         , version :: Text
+                         , source :: Text
                          } deriving (Show, Eq)
 
 

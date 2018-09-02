@@ -66,7 +66,7 @@ spec = do
 
         it "parses the metadata" $ do
             let result = parseBeatmapMetadata metadataLines
-            let expected = Metadata { beatmapId = 1
+            let expected = Just Metadata { beatmapId = 1
                                              , beatmapSetId = 2
                                              , title = "title"
                                              , artist = "artist"
