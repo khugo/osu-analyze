@@ -44,7 +44,7 @@ extractSectionLines sectionName = map pack . stripHeader . sectionLines . map un
     where stripHeader [] = []
           stripHeader xs = tail xs
           sectionLines = takeWhile (/= "") . dropWhile (/= sectionHeader)
-          sectionHeader = "[" ++ (unpack sectionName) ++ "]"
+          sectionHeader = "[" ++ unpack sectionName ++ "]"
 
 beatmapLines :: Text -> [Text]
 beatmapLines = splitOn "\r\n"

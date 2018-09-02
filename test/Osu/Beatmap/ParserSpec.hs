@@ -55,22 +55,50 @@ spec = do
                 result `shouldBe` M.empty
 
     describe "parseBeatmapMetadata" $ do
-        let metadataLines = ["[Metadata]"
-                            ,"BeatmapID: 1"
-                            ,"BeatmapSetID: 2"
-                            ,"TitleUnicode: title"
-                            ,"ArtistUnicode: artist"
-                            ,"Creator: creator"
-                            ,"Version: version"
-                            ,"Source:"]
+        describe "when valid data" $ do
+            let metadataLines = ["[Metadata]"
+                                ,"BeatmapID: 1"
+                                ,"BeatmapSetID: 2"
+                                ,"TitleUnicode: title"
+                                ,"ArtistUnicode: artist"
+                                ,"Creator: creator"
+                                ,"Version: version"
+                                ,"Source:"]
 
-        it "parses the metadata" $ do
-            let result = parseBeatmapMetadata metadataLines
-            let expected = Just Metadata { beatmapId = 1
+            it "parses the metadata" $ do
+                let result = parseBeatmapMetadata metadataLines
+                let expected = Just Metadata { beatmapId = 1
                                              , beatmapSetId = 2
                                              , title = "title"
                                              , artist = "artist"
                                              , creator = "creator"
                                              , version = "version"
                                              , source = "" }
-            result `shouldBe` expected
+                result `shouldBe` expected
+
+        describe "when missing fields" $ do
+            let metadataLines = ["[Metadata]"
+                                ,"BeatmapID: 1"
+                                ,"TitleUnicode: title"
+                                ,"ArtistUnicode: artist"
+                                ,"Creator: creator"
+                                ,"Version: version"
+                                ,"Source:"]
+            
+            it "returns Nothing" $ do
+                parseBeatmapMetadata metadataLines `shouldBe` Nothing
+
+        
+        describe "when invalid data" $ do
+            let metadataLines = ["[Metadata]"
+                                ,"BeatmapID: NaN"
+                                ,"BeatmapSetID: 2"
+                                ,"TitleUnicode: title"
+                                ,"ArtistUnicode: artist"
+                                ,"Creator: creator"
+                                ,"Version: version"
+                                ,"Source:"]
+
+            it "returns Nothing" $ do
+                parseBeatmapMetadata metadataLines `shouldBe` Nothing
+                
