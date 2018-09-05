@@ -9,11 +9,9 @@ module Osu.Beatmap.HitObject
 where
 
 import Data.Text (Text, splitOn, unpack)
-import qualified Data.Text as T
 import Text.Read (readMaybe)
 import Data.Bits (testBit)
 import Control.Applicative (liftA2)
-import Debug.Trace
 
 data Transform = Transform { x :: Int
                            , y :: Int
@@ -42,15 +40,15 @@ parseHitObject definition = do
     where 
         parseParts = case splitParts of
                        (xStr:yStr:timeStr:typeStr:rest) -> do
-                           x <- readMaybe xStr :: Maybe Int
-                           y <- readMaybe yStr :: Maybe Int
-                           time <- readMaybe timeStr :: Maybe Int
-                           type' <- readMaybe typeStr :: Maybe Int
+                           x <- readMaybe $ unpack xStr :: Maybe Int
+                           y <- readMaybe $ unpack yStr :: Maybe Int
+                           time <- readMaybe $ unpack timeStr :: Maybe Int
+                           type' <- readMaybe $ unpack typeStr :: Maybe Int
                            Just (type',Transform x y time,rest)
                        _ -> Nothing
-        splitParts = map unpack $ splitOn "," definition
+        splitParts = splitOn "," definition
 
-parseSlider :: Transform -> [String] -> Maybe HitObject
+parseSlider :: Transform -> [Text] -> Maybe HitObject
 parseSlider transform rest = do
     (sliderType,path,sliderRepeat,pixelLength) <- parts
     pathPoints <- foldMaybies $ map parsePathPoint path
@@ -63,12 +61,12 @@ parseSlider transform rest = do
                  })
     where
         parts = case rest of (_:pathDef:repeatStr:pixelLengthStr:_) -> do
-                                       sliderRepeat <- readMaybe repeatStr :: Maybe Int
-                                       pixelLength <- readMaybe pixelLengthStr :: Maybe Int
+                                       sliderRepeat <- readMaybe $ unpack repeatStr :: Maybe Int
+                                       pixelLength <- readMaybe $ unpack pixelLengthStr :: Maybe Int
                                        (sliderType,path) <- splitPathDef pathDef
                                        Just (sliderType,path,sliderRepeat,pixelLength)
                              _ -> Nothing
-        splitPathDef def = case splitOn "|" (T.pack def) of
+        splitPathDef def = case splitOn "|" def of
                              (sliderType:path) -> Just (sliderType,path)
                              _ -> Nothing
         
@@ -81,8 +79,8 @@ makeSliderPath _ _ = Nothing
 parsePathPoint :: Text -> Maybe Point
 parsePathPoint def = case splitOn ":" def of
                        [xStr,yStr] -> do
-                           x <- readMaybe (T.unpack xStr) :: Maybe Int
-                           y <- readMaybe (T.unpack yStr) :: Maybe Int
+                           x <- readMaybe $ unpack xStr :: Maybe Int
+                           y <- readMaybe $ unpack yStr :: Maybe Int
                            Just (x,y)
                        _ -> Nothing
 
