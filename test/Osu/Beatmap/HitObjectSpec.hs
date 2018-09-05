@@ -23,4 +23,24 @@ spec = do
                 it "returns Nothing" $ do
                     let result = parseHitObject invalidLine
                     result `shouldBe` Nothing
-                
+        
+        describe "parsing sliders" $ do
+            it "parses linear slider" $ do
+                let line = "436,64,26760,6,0,L|428:148,1,85,12|0,0:2|1:2,0:0:0:0:"
+                let result = parseHitObject line
+                result `shouldBe` Just (Slider { transform = Transform 436 64 26760
+                                               , path = Linear (428,148)
+                                               , sliderRepeat = 1
+                                               , pixelLength = 85
+                                               , duration = 0
+                                               })
+
+            it "parses perfect slider" $ do
+                let line = "145,173,33635,6,0,P|181:214|177:265,1,85,2|2,1:2|1:2,0:0:0:0:"
+                let result = parseHitObject line
+                result `shouldBe` Just (Slider { transform = Transform 145 173 33635
+                                               , path = Perfect (181,214) (177,265)
+                                               , sliderRepeat = 1
+                                               , pixelLength = 85
+                                               , duration = 0
+                                               })

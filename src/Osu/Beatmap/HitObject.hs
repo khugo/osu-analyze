@@ -2,14 +2,18 @@ module Osu.Beatmap.HitObject
     (
         HitObject(..),
         Transform(..),
+        SliderPath(..),
         parseHitObject
     )
 
 where
 
 import Data.Text (Text, splitOn, unpack)
+import qualified Data.Text as T
 import Text.Read (readMaybe)
 import Data.Bits (testBit)
+import Control.Applicative (liftA2)
+import Debug.Trace
 
 data Transform = Transform { x :: Int
                            , y :: Int
@@ -18,19 +22,22 @@ data Transform = Transform { x :: Int
 
 type Point = (Int,Int)
 data SliderPath = Linear { end :: Point }
-                | Perfect { start :: Point, passThrough :: Point, end :: Point }
+                | Perfect { passThrough :: Point, end :: Point }
                 | Bezier { points :: [Point] } deriving (Show, Eq)
 
 data HitObject = HitCircle Transform
                | Slider { transform :: Transform
                         , path :: SliderPath
-                        , repeat :: Int
+                        , sliderRepeat :: Int
+                        , pixelLength :: Int
+                        , duration :: Int
                         } deriving (Show, Eq)
 
 parseHitObject :: Text -> Maybe HitObject
 parseHitObject definition = do
     (type',transform,rest) <- parseParts
     if | testBit type' 0 -> Just (HitCircle transform)
+       | testBit type' 1 -> parseSlider transform rest
        | otherwise -> Nothing
     where 
         parseParts = case splitParts of
@@ -43,5 +50,41 @@ parseHitObject definition = do
                        _ -> Nothing
         splitParts = map unpack $ splitOn "," definition
 
-parseSlider :: Transform -> [String] -> HitObject
-parseSlider transform rest = undefined
+parseSlider :: Transform -> [String] -> Maybe HitObject
+parseSlider transform rest = do
+    (sliderType,path,sliderRepeat,pixelLength) <- parts
+    pathPoints <- foldMaybies $ map parsePathPoint path
+    sliderPath <- makeSliderPath sliderType pathPoints
+    Just (Slider { transform = transform
+                 , path = sliderPath
+                 , sliderRepeat = sliderRepeat
+                 , pixelLength = pixelLength
+                 , duration = 0
+                 })
+    where
+        parts = case rest of (_:pathDef:repeatStr:pixelLengthStr:_) -> do
+                                       sliderRepeat <- readMaybe repeatStr :: Maybe Int
+                                       pixelLength <- readMaybe pixelLengthStr :: Maybe Int
+                                       (sliderType,path) <- splitPathDef pathDef
+                                       Just (sliderType,path,sliderRepeat,pixelLength)
+                             _ -> Nothing
+        splitPathDef def = case splitOn "|" (T.pack def) of
+                             (sliderType:path) -> Just (sliderType,path)
+                             _ -> Nothing
+        
+
+makeSliderPath :: Text -> [Point] -> Maybe SliderPath
+makeSliderPath "L" [end] = Just (Linear end)
+makeSliderPath "P" [passThrough,end] = Just (Perfect passThrough end)
+makeSliderPath _ _ = Nothing
+
+parsePathPoint :: Text -> Maybe Point
+parsePathPoint def = case splitOn ":" def of
+                       [xStr,yStr] -> do
+                           x <- readMaybe (T.unpack xStr) :: Maybe Int
+                           y <- readMaybe (T.unpack yStr) :: Maybe Int
+                           Just (x,y)
+                       _ -> Nothing
+
+foldMaybies :: [Maybe a] -> Maybe [a]
+foldMaybies = foldl (liftA2 (\acc m -> acc ++ [m])) (Just [])
