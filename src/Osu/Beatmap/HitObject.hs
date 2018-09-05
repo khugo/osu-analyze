@@ -1,6 +1,8 @@
 module Osu.Beatmap.HitObject
     (
-        HitObject
+        HitObject(..),
+        Transform(..),
+        parseHitObject
     )
 
 where
@@ -12,28 +14,22 @@ import Data.Bits (testBit)
 data Transform = Transform { x :: Int
                            , y :: Int
                            , time :: Int
-                           }
+                           } deriving (Show, Eq)
 
-data HitObject = HitCircle Transform
+data HitObject = HitCircle Transform deriving (Show, Eq)
 
 parseHitObject :: Text -> Maybe HitObject
 parseHitObject definition = do
-    x <- getX
-    y <- getY
-    time <- getTime
-    type' <- getType
-    let transform = Transform { x = x
-                              , y = y
-                              , time = time
-                              }
-    if | testBit (1 :: Int) type' -> Just (HitCircle transform)
+    (type',transform,rest) <- parseParts
+    if | testBit type' 0 -> Just (HitCircle transform)
        | otherwise -> Nothing
     where 
-        getX = parseParts >>= (\(x,_,_,_) -> readMaybe x :: Maybe Int)
-        getY = parseParts >>= (\(_,y,_,_) -> readMaybe y :: Maybe Int)
-        getTime = parseParts >>= (\(_,_,time,_) -> readMaybe time :: Maybe Int)
-        getType = parseParts >>= (\(_,_,_,type') -> readMaybe type' :: Maybe Int)
         parseParts = case splitParts of
-                       (x:y:time:type':_) -> Just (x,y,time,type') 
+                       (xStr:yStr:timeStr:typeStr:rest) -> do
+                           x <- readMaybe xStr :: Maybe Int
+                           y <- readMaybe yStr :: Maybe Int
+                           time <- readMaybe timeStr :: Maybe Int
+                           type' <- readMaybe typeStr :: Maybe Int
+                           Just (type',Transform x y time,rest)
                        _ -> Nothing
         splitParts = map unpack $ splitOn "," definition
