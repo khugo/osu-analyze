@@ -16,7 +16,16 @@ data Transform = Transform { x :: Int
                            , time :: Int
                            } deriving (Show, Eq)
 
-data HitObject = HitCircle Transform deriving (Show, Eq)
+type Point = (Int,Int)
+data SliderPath = Linear { end :: Point }
+                | Perfect { start :: Point, passThrough :: Point, end :: Point }
+                | Bezier { points :: [Point] } deriving (Show, Eq)
+
+data HitObject = HitCircle Transform
+               | Slider { transform :: Transform
+                        , path :: SliderPath
+                        , repeat :: Int
+                        } deriving (Show, Eq)
 
 parseHitObject :: Text -> Maybe HitObject
 parseHitObject definition = do
@@ -33,3 +42,6 @@ parseHitObject definition = do
                            Just (type',Transform x y time,rest)
                        _ -> Nothing
         splitParts = map unpack $ splitOn "," definition
+
+parseSlider :: Transform -> [String] -> HitObject
+parseSlider transform rest = undefined
