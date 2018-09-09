@@ -44,3 +44,12 @@ spec = do
                                                , pixelLength = 85
                                                , duration = 0
                                                })
+            it "parses bezier slider" $ do
+                let line = "134,66,29572,6,0,B|164:86|164:86|173:165,1,95.6250036478044,2|0,0:2|0:0,0:0:0:0:"
+                let result = parseHitObject line
+                result `shouldBe` Just (Slider { transform = Transform 134 66 29572
+                                               , path = Bezier [(164,86),(164,86),(173,165)]
+                                               , sliderRepeat = 1
+                                               , pixelLength = 95.625
+                                               , duration = 0
+                                               })

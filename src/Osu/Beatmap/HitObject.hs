@@ -27,7 +27,7 @@ data HitObject = HitCircle Transform
                | Slider { transform :: Transform
                         , path :: SliderPath
                         , sliderRepeat :: Int
-                        , pixelLength :: Int
+                        , pixelLength :: Float
                         , duration :: Int
                         } deriving (Show, Eq)
 
@@ -62,7 +62,7 @@ parseSlider transform rest = do
     where
         parts = case rest of (_:pathDef:repeatStr:pixelLengthStr:_) -> do
                                        sliderRepeat <- readMaybe $ unpack repeatStr :: Maybe Int
-                                       pixelLength <- readMaybe $ unpack pixelLengthStr :: Maybe Int
+                                       pixelLength <- readMaybe $ unpack pixelLengthStr :: Maybe Float
                                        (sliderType,path) <- splitPathDef pathDef
                                        Just (sliderType,path,sliderRepeat,pixelLength)
                              _ -> Nothing
@@ -74,6 +74,7 @@ parseSlider transform rest = do
 makeSliderPath :: Text -> [Point] -> Maybe SliderPath
 makeSliderPath "L" [end] = Just (Linear end)
 makeSliderPath "P" [passThrough,end] = Just (Perfect passThrough end)
+makeSliderPath "B" points = Just (Bezier points)
 makeSliderPath _ _ = Nothing
 
 parsePathPoint :: Text -> Maybe Point
