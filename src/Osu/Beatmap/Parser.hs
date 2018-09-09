@@ -1,8 +1,10 @@
 module Osu.Beatmap.Parser
     (
       parseBeatmapMetadata 
+    , parseBeatmapHitObjects
     , extractSection
     , extractSectionLines
+    , foldMaybies
     )
 where
 
@@ -11,6 +13,8 @@ import Data.Text (Text, strip, unpack, pack, splitOn)
 import Text.Read (readMaybe)
 import Data.Maybe (mapMaybe)
 import Osu.Beatmap
+import Osu.Beatmap.HitObject (HitObject(..), parseHitObject)
+import Osu.Utils (foldMaybies)
 
 parseBeatmapMetadata :: [Text] -> Maybe Metadata
 parseBeatmapMetadata allLines = do
@@ -30,6 +34,11 @@ parseBeatmapMetadata allLines = do
                     , version = version
                     , source = source
                     }
+
+parseBeatmapHitObjects :: [Text] -> Maybe [HitObject]
+parseBeatmapHitObjects allLines = foldMaybies $ map parseHitObject hitObjectLines
+    where hitObjectLines = extractSectionLines "HitObjects" allLines
+
 
 extractSection :: Text -> [Text] -> M.Map Text Text
 extractSection sectionName allLines = makeMap $ extractSectionLines sectionName allLines

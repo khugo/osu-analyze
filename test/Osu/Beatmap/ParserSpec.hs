@@ -6,8 +6,10 @@ where
 
 import Test.Hspec
 import Osu.Beatmap
+import Osu.Beatmap.HitObject
 import Osu.Beatmap.Parser
 import qualified Data.Map.Lazy as M
+import qualified Data.Text as T
 
 spec :: Spec
 spec = do
@@ -102,3 +104,16 @@ spec = do
             it "returns Nothing" $ do
                 parseBeatmapMetadata metadataLines `shouldBe` Nothing
                 
+    describe "parseBeatmapHitObjects" $ do
+        it "parses all hit objects" $ do
+            lines <- map T.pack <$> lines <$> readFile "test/fixtures/beatmap.osu"
+            let result = parseBeatmapHitObjects lines
+            (result :: Maybe [HitObject]) `shouldNotBe` (Just [])
+        
+        it "returns Nothing if any line is invalid" $ do
+            let lines = ["[HitObjects]"
+                        ,"129,89,20041,1,10,0:2:0:0:"
+                        ,"invalid"
+                        ]
+            let result = parseBeatmapHitObjects lines
+            result `shouldBe` Nothing

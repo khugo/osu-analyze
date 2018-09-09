@@ -11,7 +11,7 @@ where
 import Data.Text (Text, splitOn, unpack)
 import Text.Read (readMaybe)
 import Data.Bits (testBit)
-import Control.Applicative (liftA2)
+import Osu.Utils (foldMaybies)
 
 data Transform = Transform { x :: Int
                            , y :: Int
@@ -85,5 +85,3 @@ parsePathPoint def = case splitOn ":" def of
                            Just (x,y)
                        _ -> Nothing
 
-foldMaybies :: [Maybe a] -> Maybe [a]
-foldMaybies = foldl (liftA2 (\acc m -> acc ++ [m])) (Just [])
