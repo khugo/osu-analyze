@@ -106,7 +106,7 @@ spec = do
                 
     describe "parseBeatmapHitObjects" $ do
         it "parses all hit objects" $ do
-            lines <- map T.pack <$> lines <$> readFile "test/fixtures/beatmap.osu"
+            lines <- T.splitOn "\r\n" <$> T.pack <$> readFile "test/fixtures/beatmap.osu"
             let result = parseBeatmapHitObjects lines
             (result :: Maybe [HitObject]) `shouldNotBe` (Just [])
         
